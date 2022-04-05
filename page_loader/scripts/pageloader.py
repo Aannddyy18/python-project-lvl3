@@ -18,5 +18,5 @@ def parse_command_line_args():
 
 def main():
     args = parse_command_line_args()
-    path_to_file = download(args.output, args.page_url)
+    path_to_file = download(args.page_url, args.output)
     print(path_to_file)
