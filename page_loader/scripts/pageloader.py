@@ -6,11 +6,11 @@ from page_loader.page_loader import download
 
 def parse_command_line_args():
     parser = argparse.ArgumentParser(description='Page loader')
+    parser.add_argument('page_url', metavar='url_for_page')
     parser.add_argument(
         '-o', '--output', default=os.getcwd(), type=pathlib.Path,
         help='set path to existing directory for download'
     )
-    parser.add_argument('page_url', metavar='url_for_page')
 
     args = parser.parse_args()
     return args
