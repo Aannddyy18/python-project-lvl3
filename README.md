@@ -7,4 +7,4 @@
 
  
  ### Codeclimate test coverage
- [![Test Coverage](https://api.codeclimate.com/v1/badges/cc1af9eb31ce8246fb1a/test_coverage)](https://codeclimate.com/github/Aannddyy18/python-project-lvl3/test_coverage) 
+ [![Test Coverage](https://api.codeclimate.com/v1/badges/cc1af9eb31ce8246fb1a/test_coverage)](https://codeclimate.com/github/Aannddyy18/python-project-lvl3/test_coverage)
