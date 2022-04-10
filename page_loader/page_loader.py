@@ -1,56 +1,61 @@
 import os
-import sys
 import re
 import requests
 from urllib.parse import urlparse, urljoin
-from bs4 import BeautifulSoup
-
-
-def save_change(soup, net_loc, pagefolder, url, tag, inner):
-    if not os.path.exists(pagefolder):  # create only once
-       try:
-            os.mkdir(pagefolder)
-       except Exception as exc:
-           print(exc, file=sys.stderr)
-    for res in soup.findAll(tag):  # images
-        if res.has_attr(inner):  # check inner tag
-            try:
-                fileurl = urljoin(url, res.get(inner))
-                filename, ext = os.path.splitext(res[inner])  # get name and extension
-                filename = re.sub('[^a-z0-9]', '-', net_loc + filename) + ext
-                filepath = os.path.join(pagefolder, filename)
-                # rename html ref
-                res[inner] = os.path.join(pagefolder, filename)
-                if not os.path.isfile(filepath):  # was not downloaded
-                    with open(filepath, 'wb') as file:
-                        session = requests.Session()
-                        filebin = session.get(fileurl)
-                        file.write(filebin.content)
-            except Exception as exc:
-                print(exc, file=sys.stderr)
+from bs4 import BeautifulSoup as B_s
 
 
 def download(url, dir_path=os.getcwd()):
     o = urlparse(url)
     net_loc = o.netloc
     split_path = os.path.splitext(o.path)
-    cut_url = os.path.split(url)
-    if split_path[1] != '':
-        cut_url = os.path.splitext(cut_url[1])
-        page_name = re.sub('[^a-z0-9]', '-', (net_loc + '/' + cut_url[0]))
-    elif split_path[1] == '' and split_path[0] == '':
-        page_name = re.sub('[^a-z0-9]', '-', net_loc)
+    if split_path[1] == '' and split_path[0] == '':
+        page_name = normalize_string(net_loc)
     else:
-        page_name = re.sub('[^a-z0-9]', '-', (net_loc + '/' + cut_url[1]))
-    pagefolder = page_name + '_files'
+        page_name = normalize_string(net_loc + split_path[0])
+    page_folder_name = page_name + '_files'
     page_name += '.html'
     file_path = os.path.join(dir_path, page_name)
-    session = requests.Session()
-    responce = session.get(url)
-    soup = BeautifulSoup(responce.text, "html.parser")
-    tags_inner = {'img': 'src'}
-    for tag, inner in tags_inner.items(): # saves resource files and rename refs
-        save_change(soup, net_loc, pagefolder, url, tag, inner)
-    with open(page_name, 'wb') as file: # saves modified html doc
-        file.write(soup.prettify('utf-8'))
+    page_folder = os.path.join(dir_path, page_folder_name)
+
+    html_content = requests.get(url).text
+    image_links = parse_rename_image_links(url, page_name, page_folder, html_content)
+    for img_url, f_path in image_links.items():
+        img_content = requests.get(img_url).content
+        dump_image(page_folder, f_path, img_content)
     return file_path
+
+
+def parse_rename_image_links(url, page_name, page_folder, html_content):
+    result = {}
+    base_url, net_loc = get_base_url(url)
+    bs = B_s(html_content, "html.parser")
+    for img in bs.findAll("img"):
+        if img.has_attr("src"):
+            link = img.get("src")
+            _link = urljoin(base_url, link)
+            filename, ext = os.path.splitext(link)
+            filename = normalize_string(net_loc + filename)
+            filename += ext
+            filepath = os.path.join(page_folder, filename)
+            img['src'] = filepath
+            result[_link] = filepath
+    with open(page_name, 'wb') as file:
+        file.write(bs.prettify('utf-8'))
+    return result
+
+
+def get_base_url(page_url):
+    url = urlparse(page_url)
+    return f"{url.scheme}://{url.netloc}", url.netloc
+
+
+def dump_image(output_dir, filepath, content):
+    os.makedirs(output_dir, exist_ok=True)
+    with open(filepath, "wb") as s:
+        s.write(content)
+
+
+def normalize_string(string):
+    string_name = re.sub('[^a-z0-9]', '-', string)
+    return string_name

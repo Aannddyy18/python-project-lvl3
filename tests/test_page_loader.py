@@ -3,9 +3,9 @@ from os.path import dirname
 import tempfile
 import requests
 import requests_mock
-from bs4 import BeautifulSoup
 from page_loader.scripts.pageloader import download
-from page_loader.page_loader import save_change
+from page_loader.page_loader import parse_rename_image_links
+
 
 FIXTURES_FOLDER = 'fixtures'
 
@@ -36,12 +36,11 @@ def test_page_loader_path_to_file():
 def test_page_loader_img():
     with requests_mock.Mocker() as m:
         m.get('https://ru.hexlet.io/courses/assets/professions/nodejs.png', content=expected_image)
-        with tempfile.TemporaryDirectory():
-            soup = BeautifulSoup(source_page, "html.parser")
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            page_name = 'ru-hexlet-io-courses.html'
+            page_folder = os.path.join(tmp_dir, 'ru-hexlet-io-courses_files')
             url = 'https://ru.hexlet.io/courses'
-            net_loc = 'ru.hexlet.io'
-            save_change(
-                        soup, net_loc, 'ru-hexlet-io-courses_files', url, 'img', 'src')
+            parse_rename_image_links(url, page_name, page_folder, source_page)
             with open(
                         os.path.join('ru-hexlet-io-courses_files',
                                     'ru-hexlet-io-assets-professions-nodejs.png'
