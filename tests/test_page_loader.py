@@ -58,3 +58,4 @@ def test_page_loader_change():
                     os.path.join('ru-hexlet-io-courses.html'), 'r') as d:
                 downloaded_content = d.read()
                 assert downloaded_content == changed_page
+
