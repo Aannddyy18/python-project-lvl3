@@ -12,3 +12,7 @@
 
  ### Asciinema_step_1_third_project
  [![asciicast](https://asciinema.org/a/SKJmcymoE71J7RNhRa3UAYIid.png)](https://asciinema.org/a/SKJmcymoE71J7RNhRa3UAYIid)
+
+
+ ### Asciinema_step_2_third_project
+ [![asciicast](https://asciinema.org/a/CVqyVqjgEi530sjKd6XNLbpgq.png)](https://asciinema.org/a/CVqyVqjgEi530sjKd6XNLbpgq)

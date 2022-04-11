@@ -1,11 +1,8 @@
 import os
 from os.path import dirname
 import tempfile
-import requests
 import requests_mock
 from page_loader.scripts.pageloader import download
-from page_loader.page_loader import parse_rename_image_links
-
 
 FIXTURES_FOLDER = 'fixtures'
 
@@ -27,24 +24,22 @@ changed_page = get_content(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'cha
 
 
 def test_page_loader_path_to_file():
-    with tempfile.TemporaryDirectory() as tmpdirname:
-        actual_path = download('https://google.com', tmpdirname)
-        expected_path = os.path.join(tmpdirname, "google-com.html")
+    with tempfile.TemporaryDirectory() as tmp_dir:
+        actual_path = download('https://ru.hexlet.io/courses', tmp_dir)
+        expected_path = os.path.join(tmp_dir, "ru-hexlet-io-courses.html")
         assert actual_path == expected_path
 
 
 def test_page_loader_img():
     with requests_mock.Mocker() as m:
-        m.get('https://ru.hexlet.io/courses/assets/professions/nodejs.png', content=expected_image)
+        m.get('https://ru.hexlet.io/courses', text=source_page)
+        m.get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
         with tempfile.TemporaryDirectory() as tmp_dir:
-            page_name = 'ru-hexlet-io-courses.html'
-            page_folder = os.path.join(tmp_dir, 'ru-hexlet-io-courses_files')
-            url = 'https://ru.hexlet.io/courses'
-            parse_rename_image_links(url, page_name, page_folder, source_page)
+            download('https://ru.hexlet.io/courses', tmp_dir)
             with open(
-                        os.path.join('ru-hexlet-io-courses_files',
-                                    'ru-hexlet-io-assets-professions-nodejs.png'
-                                    ), 'rb') as d:
+                    os.path.join(tmp_dir, 'ru-hexlet-io-courses_files',
+                                 'ru-hexlet-io-assets-professions-nodejs.png'
+                                 ), 'rb') as d:
                 downloaded_content = d.read()
                 assert downloaded_content == expected_image
 
@@ -52,9 +47,10 @@ def test_page_loader_img():
 def test_page_loader_change():
     with requests_mock.Mocker() as m:
         m.get('https://ru.hexlet.io/courses', text=source_page)
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            download('https://ru.hexlet.io/courses', tmpdirname)
+        m.get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            download('https://ru.hexlet.io/courses', tmp_dir)
             with open(
-                    os.path.join('ru-hexlet-io-courses.html'), 'r') as d:
+                    os.path.join(tmp_dir, 'ru-hexlet-io-courses.html'), 'r') as d:
                 downloaded_content = d.read()
                 assert downloaded_content == changed_page

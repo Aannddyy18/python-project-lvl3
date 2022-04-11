@@ -15,18 +15,17 @@ def download(url, dir_path=os.getcwd()):
         page_name = normalize_string(net_loc + split_path[0])
     page_folder_name = page_name + '_files'
     page_name += '.html'
-    file_path = os.path.join(dir_path, page_name)
+    page_path = os.path.join(dir_path, page_name)
     page_folder = os.path.join(dir_path, page_folder_name)
-
     html_content = requests.get(url).text
-    image_links = parse_rename_image_links(url, page_name, page_folder, html_content)
-    for img_url, f_path in image_links.items():
+    image_links = parse_rename_image_links(url, page_path, page_folder_name, page_folder, html_content)
+    for img_url, f_name in image_links.items():
         img_content = requests.get(img_url).content
-        dump_image(page_folder, f_path, img_content)
-    return file_path
+        dump_image(f_name, img_content)
+    return page_path
 
 
-def parse_rename_image_links(url, page_name, page_folder, html_content):
+def parse_rename_image_links(url, page_path, page_folder_name, page_folder, html_content):
     result = {}
     base_url, net_loc = get_base_url(url)
     bs = B_s(html_content, "html.parser")
@@ -37,10 +36,11 @@ def parse_rename_image_links(url, page_name, page_folder, html_content):
             filename, ext = os.path.splitext(link)
             filename = normalize_string(net_loc + filename)
             filename += ext
-            filepath = os.path.join(page_folder, filename)
+            filepath = os.path.join(page_folder_name, filename)
+            full_filepath = os.path.join(page_folder, filename)
             img['src'] = filepath
-            result[_link] = filepath
-    with open(page_name, 'wb') as file:
+            result[_link] = full_filepath
+    with open(page_path, 'wb') as file:
         file.write(bs.prettify('utf-8'))
     return result
 
@@ -50,9 +50,10 @@ def get_base_url(page_url):
     return f"{url.scheme}://{url.netloc}", url.netloc
 
 
-def dump_image(output_dir, filepath, content):
+def dump_image(output_path, content):
+    output_dir = os.path.dirname(output_path)
     os.makedirs(output_dir, exist_ok=True)
-    with open(filepath, "wb") as s:
+    with open(output_path, "wb") as s:
         s.write(content)
 
 
