@@ -22,6 +22,6 @@ selfcheck:
 check: selfcheck test lint
 
 test-coverage:
-	poetry run pytest --cov=gendiff --cov-report xml
+	poetry run pytest --cov=page_loader --cov-report xml
 
 .PHONY: install test lint selfcheck check build
