@@ -1,4 +1,5 @@
 import os
+import logging
 import re
 import requests
 from urllib.parse import urlparse, urljoin
@@ -6,6 +7,7 @@ from bs4 import BeautifulSoup as B_s
 
 
 def download(url, dir_path=os.getcwd()):
+    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
     o = urlparse(url)
     net_loc = o.netloc
     split_path = os.path.splitext(o.path)
@@ -17,11 +19,14 @@ def download(url, dir_path=os.getcwd()):
     page_name += '.html'
     page_path = os.path.join(dir_path, page_name)
     page_folder = os.path.join(dir_path, page_folder_name)
+    logging.info('Start to download requested page.')
     html_content = requests.get(url).text
     image_links = parse_rename_image_links(url, page_path, page_folder_name, page_folder, html_content)
     for img_url, f_name in image_links.items():
+        logging.info('Getting resourses for that page..')
         img_content = requests.get(img_url).content
         dump_image(f_name, img_content)
+    logging.info('Done!')
     return page_path
 
 

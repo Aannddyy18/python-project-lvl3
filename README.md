@@ -20,3 +20,7 @@
 
 ### Asciinema_step_3_third_project
 [![asciicast](https://asciinema.org/a/0c2imF7YIP7c6fXwKr9Y7AIKW.png)](https://asciinema.org/a/0c2imF7YIP7c6fXwKr9Y7AIKW)
+
+
+### Asciinema_step_4_third_project
+[![asciicast](https://asciinema.org/a/qUxniUx7RdYx7Ht5ljxSyqcNz.png)](https://asciinema.org/a/qUxniUx7RdYx7Ht5ljxSyqcNz)
