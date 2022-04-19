@@ -1,8 +1,12 @@
 import os
+import pytest
 from os.path import dirname
+from unittest.mock import patch
 import tempfile
+import requests
 import requests_mock
 from page_loader.scripts.pageloader import download
+
 
 FIXTURES_FOLDER = 'fixtures'
 
@@ -92,3 +96,29 @@ def test_page_loader_js():
                                  ), 'rb') as d:
                 downloaded_content = d.read()
                 assert downloaded_content == expected_js
+
+
+def test_page_loader_os_error_exceptions():
+    with patch('page_loader.page_loader.save_html', side_effect=OSError('Can not save requested page!')):
+        with pytest.raises(OSError) as e:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                download('https://ru.hexlet.io/courses', tmp_dir)
+        assert str(e.value) == 'Can not save requested page!'
+
+
+def test_page_loader_request_timeout_errors():
+    with requests_mock.Mocker() as m:
+        m.get('http://twitter.com/api/1/foobar', exc=requests.exceptions.ConnectTimeout)
+        with pytest.raises(requests.exceptions.ConnectTimeout) as e:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                download('http://twitter.com/api/1/foobar', tmp_dir)
+                assert isinstance(e.type, requests.exceptions.ConnectTimeout)
+
+
+def test_page_loader_request_http_errors():
+    with requests_mock.Mocker() as m:
+        m.get('http://instagram.com/api/1/foobar', exc=requests.exceptions.HTTPError)
+        with pytest.raises(requests.exceptions.HTTPError) as e:
+            with tempfile.TemporaryDirectory() as tmp_dir:
+                download('http://instagram.com/api/1/foobar', tmp_dir)
+                assert isinstance(e.type, requests.exceptions.HTTPError)

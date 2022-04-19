@@ -1,4 +1,7 @@
 import os
+import sys
+import logging
+import requests
 import argparse
 import pathlib
 from page_loader.page_loader import download
@@ -18,5 +21,19 @@ def parse_command_line_args():
 
 def main():
     args = parse_command_line_args()
-    path_to_file = download(args.page_url, args.output)
+    try:
+        path_to_file = download(args.page_url, args.output)
+    except requests.exceptions.ConnectionError as e:
+        logging.error(f"Failed to connect to server, reason: {e}")
+        sys.exit(1)
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Failed to download by a link, reason: {e}")
+        sys.exit(1)
+    except OSError as e:
+        logging.error(f"Failed to save, reason: {e}")
+        sys.exit(1)
     print(path_to_file)
+
+
+if __name__ == "__main__":
+    main()

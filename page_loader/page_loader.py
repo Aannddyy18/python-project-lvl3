@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import re
 import requests
@@ -7,9 +8,27 @@ from bs4 import BeautifulSoup as B_s
 
 
 def download(url, dir_path=os.getcwd()):
-    logging.basicConfig(format='%(levelname)s:%(message)s', level=logging.DEBUG)
+    stderr = logging.StreamHandler(sys.stderr)
+    stderr.setLevel(logging.ERROR)
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    stdout = logging.StreamHandler(sys.stdout)
+    stdout.setLevel(logging.INFO)
+    stderr.setFormatter(formatter)
+    stdout.setFormatter(formatter)
+    logging.basicConfig(handlers=[stdout, stderr])
+    logging.info('Start to download requested page.')
+    r = requests.get(url)
+    html_content = r.text
+    ch_html, html_links, page_path = prepare_html(html_content, url, dir_path)
+    save_html(page_path, ch_html)
+    get_res(html_links)
+    logging.info('Done!')
+    return page_path
+
+
+def prepare_html(html: str, url: str, dir_path):
     o = urlparse(url)
-    net_loc = o.netloc
+    base_url, net_loc = get_base_url(url)
     split_path = os.path.splitext(o.path)
     if split_path[1] == '' and split_path[0] == '':
         page_name = normalize_string(net_loc)
@@ -19,20 +38,8 @@ def download(url, dir_path=os.getcwd()):
     page_name += '.html'
     page_path = os.path.join(dir_path, page_name)
     page_folder = os.path.join(dir_path, page_folder_name)
-    logging.info('Start to download requested page.')
-    html_content = requests.get(url).text
-    image_links = parse_rename_image_links(url, page_path, page_folder_name, page_folder, html_content)
-    for img_url, f_name in image_links.items():
-        logging.info('Getting resourses for that page..')
-        img_content = requests.get(img_url).content
-        dump_image(f_name, img_content)
-    logging.info('Done!')
-    return page_path
 
-
-def parse_rename_image_links(url, page_path, page_folder_name, page_folder, html_content):
-    base_url, net_loc = get_base_url(url)
-    _bs = B_s(html_content, "html.parser")
+    _bs = B_s(html, "html.parser")
 
     def charge_soup(bs):
         _result = {}
@@ -67,9 +74,20 @@ def parse_rename_image_links(url, page_path, page_folder_name, page_folder, html
             return True
 
     result = charge_soup(_bs)
-    with open(page_path, 'wb') as file:
-        file.write(_bs.prettify('utf-8'))
-    return result
+    changed_html = _bs.prettify('utf-8')
+    return changed_html, result, page_path
+
+
+def save_html(file_path, file_name):
+    with open(file_path, 'wb') as file:
+        file.write(file_name)
+
+
+def get_res(res_dict):
+    for img_url, f_name in res_dict.items():
+        logging.info('Getting resourses for that page..')
+        img_content = requests.get(img_url).content
+        dump_res(f_name, img_content)
 
 
 def get_base_url(page_url):
@@ -82,7 +100,7 @@ def get_base_url_path(page_url):
     return f"{url.scheme}://{url.netloc}", url.path
 
 
-def dump_image(output_path, content):
+def dump_res(output_path, content):
     output_dir = os.path.dirname(output_path)
     os.makedirs(output_dir, exist_ok=True)
     with open(output_path, "wb") as s:
