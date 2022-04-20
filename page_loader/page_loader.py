@@ -18,22 +18,14 @@ def download(url, dir_path=os.getcwd()):
     stdout.setFormatter(formatter)
     logging.basicConfig(handlers=[stdout, stderr])
     logging.info('Start to download requested page.')
-    try:
-        r = requests.get(url)
-        if r.status_code == requests.codes.ok:
-            html_content = r.text
-            ch_html, html_links, page_path = prepare_html(html_content, url, dir_path)
-            save_html(page_path, ch_html)
-            get_res(html_links)
-            logging.info('Done!')
-            return page_path
-        else:
-            r.raise_for_status()
-    except ConnectionError as exc:
-        print("Connection error: {0}".format(exc))
-    except Exception as err:
-        print(f"Unexpected {err=}, {type(err)=}")
-        raise
+    r = requests.get(url)
+    r.raise_for_status()
+    html_content = r.text
+    ch_html, html_links, page_path = prepare_html(html_content, url, dir_path)
+    save_html(page_path, ch_html)
+    get_res(html_links)
+    logging.info('Done!')
+    return page_path
 
 
 def prepare_html(html: str, url: str, dir_path):
@@ -100,22 +92,22 @@ def save_html(file_path, file_name):
 def get_res(res_dict):
     for res_url, f_name in res_dict.items():
         logging.info('Getting resourses for that page..')
-        try:
-            r = requests.get(res_url, stream=True)
-            output_dir = os.path.dirname(f_name)
-            os.makedirs(output_dir, exist_ok=True)
-            with open(f_name, "wb") as s:
-                for line in IncrementalBar('Downloading').iter(r.iter_content()):
-                    if line:
-                        s.write(line)
-                        s.flush()
-        except ConnectionError as exc:
-            print("Connection error: {0}".format(exc))
-        except OSError as err:
-            print("OS error: {0}".format(err))
-        except Exception as err:
-            print(f"Unexpected {err=}, {type(err)=}")
-            raise
+        r = requests.get(res_url, stream=True)
+        r.raise_for_status()
+        output_dir = os.path.dirname(f_name)
+        os.makedirs(output_dir, exist_ok=True)
+        with open(f_name, "wb") as s:
+            for line in IncrementalBar('Downloading').iter(r.iter_content()):
+                if line:
+                    s.write(line)
+                    s.flush()
+
+
+
+
+
+
+
 
 
 def get_base_url(page_url):
