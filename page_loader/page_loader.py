@@ -5,6 +5,7 @@ import re
 import requests
 from urllib.parse import urlparse, urljoin
 from bs4 import BeautifulSoup as B_s
+from progress.bar import IncrementalBar
 
 
 def download(url, dir_path=os.getcwd()):
@@ -84,10 +85,16 @@ def save_html(file_path, file_name):
 
 
 def get_res(res_dict):
-    for img_url, f_name in res_dict.items():
+    for res_url, f_name in res_dict.items():
         logging.info('Getting resourses for that page..')
-        img_content = requests.get(img_url).content
-        dump_res(f_name, img_content)
+        r = requests.get(res_url, stream=True)
+        output_dir = os.path.dirname(f_name)
+        os.makedirs(output_dir, exist_ok=True)
+        with open(f_name, "wb") as s:
+            for line in IncrementalBar('Downloading').iter(r.iter_lines()):
+                if line:
+                    s.write(line)
+                    s.flush()
 
 
 def get_base_url(page_url):

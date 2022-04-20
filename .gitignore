@@ -6,3 +6,4 @@ conftest.py
 .coverage
 .pytest_cache
 tmp/
+./requirements.txt
