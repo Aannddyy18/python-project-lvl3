@@ -19,9 +19,14 @@ def download(url, dir_path=os.getcwd()):
     logging.basicConfig(handlers=[stdout, stderr])
     logging.info('Start to download requested page.')
     try:
-        r = requests.get(url, timeout=5)
+        r = requests.get(url)
         if r.status_code == requests.codes.ok:
-            pass
+            html_content = r.text
+            ch_html, html_links, page_path = prepare_html(html_content, url, dir_path)
+            save_html(page_path, ch_html)
+            get_res(html_links)
+            logging.info('Done!')
+            return page_path
         else:
             r.raise_for_status()
     except ConnectionError as exc:
@@ -29,12 +34,6 @@ def download(url, dir_path=os.getcwd()):
     except Exception as err:
         print(f"Unexpected {err=}, {type(err)=}")
         raise
-    html_content = r.text
-    ch_html, html_links, page_path = prepare_html(html_content, url, dir_path)
-    save_html(page_path, ch_html)
-    get_res(html_links)
-    logging.info('Done!')
-    return page_path
 
 
 def prepare_html(html: str, url: str, dir_path):
@@ -102,20 +101,16 @@ def get_res(res_dict):
     for res_url, f_name in res_dict.items():
         logging.info('Getting resourses for that page..')
         try:
-            r = requests.get(res_url, timeout=5, stream=True)
-        except ConnectionError as exc:
-            print("Connection error: {0}".format(exc))
-        except Exception as err:
-            print(f"Unexpected {err=}, {type(err)=}")
-            raise
-        output_dir = os.path.dirname(f_name)
-        try:
+            r = requests.get(res_url, stream=True)
+            output_dir = os.path.dirname(f_name)
             os.makedirs(output_dir, exist_ok=True)
             with open(f_name, "wb") as s:
                 for line in IncrementalBar('Downloading').iter(r.iter_content()):
                     if line:
                         s.write(line)
                         s.flush()
+        except ConnectionError as exc:
+            print("Connection error: {0}".format(exc))
         except OSError as err:
             print("OS error: {0}".format(err))
         except Exception as err:
