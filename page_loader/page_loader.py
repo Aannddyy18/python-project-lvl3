@@ -91,7 +91,7 @@ def get_res(res_dict):
         output_dir = os.path.dirname(f_name)
         os.makedirs(output_dir, exist_ok=True)
         with open(f_name, "wb") as s:
-            for line in IncrementalBar('Downloading').iter(r.iter_lines()):
+            for line in IncrementalBar('Downloading').iter(r.iter_content()):
                 if line:
                     s.write(line)
                     s.flush()

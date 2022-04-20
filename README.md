@@ -31,4 +31,4 @@
 
 
 ### Asciinema_step_6_third_project
-[![asciicast](https://asciinema.org/a/eGZFXoEkfEtzIEi9cxCFAYoes.png)](https:    //asciinema.org/a/eGZFXoEkfEtzIEi9cxCFAYoes)
+[![asciicast](https://asciinema.org/a/r0P5V8SSZjM3UbWxwALMNefzJ.png)](https:    //asciinema.org/a/r0P5V8SSZjM3UbWxwALMNefzJ)
