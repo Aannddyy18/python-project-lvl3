@@ -72,7 +72,7 @@ def prepare_html(html: str, url: str, dir_path):
     def filter_tag_attr(img, attrib):
         _link_ = img.get(attrib)
         base_url_, url_path_ = get_base_url(_link_)
-        if base_url_ == 'https://ru.hexlet.io' \
+        if base_url_ == base_url \
                 or base_url_ == '://':
             return True
 
