@@ -40,11 +40,12 @@ def prepare_html(html: str, url: str, dir_path):
     page_name += '.html'
     page_path = os.path.join(dir_path, page_name)
     page_folder = os.path.join(dir_path, page_folder_name)
+    html_page_path = os.path.join(page_folder_name, page_name)
 
     _bs = B_s(html, "html.parser")
 
     def charge_soup(bs):
-        _result = {}
+        _result = {url: html_page_path}
         tags = ["img", "link", "script"]
         for img in bs.find_all(tags):
             attribs = ['src', 'href']
@@ -101,13 +102,6 @@ def get_res(res_dict):
                 if line:
                     s.write(line)
                     s.flush()
-
-
-
-
-
-
-
 
 
 def get_base_url(page_url):
