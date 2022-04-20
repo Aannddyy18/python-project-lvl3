@@ -20,8 +20,14 @@ def download(url, dir_path=os.getcwd()):
     logging.info('Start to download requested page.')
     try:
         r = requests.get(url, timeout=5)
+        if r.status_code == requests.codes.ok:
+            pass
+        else:
+            r.raise_for_status()
     except ConnectionError as exc:
         print("Connection error: {0}".format(exc))
+    except Exception as err:
+        print(f"Unexpected {err=}, {type(err)=}")
         raise
     html_content = r.text
     ch_html, html_links, page_path = prepare_html(html_content, url, dir_path)
@@ -99,6 +105,8 @@ def get_res(res_dict):
             r = requests.get(res_url, timeout=5, stream=True)
         except ConnectionError as exc:
             print("Connection error: {0}".format(exc))
+        except Exception as err:
+            print(f"Unexpected {err=}, {type(err)=}")
             raise
         output_dir = os.path.dirname(f_name)
         try:
@@ -110,6 +118,8 @@ def get_res(res_dict):
                         s.flush()
         except OSError as err:
             print("OS error: {0}".format(err))
+        except Exception as err:
+            print(f"Unexpected {err=}, {type(err)=}")
             raise
 
 
