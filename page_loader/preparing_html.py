@@ -55,4 +55,5 @@ def prepare_html(html: str, url: str, dir_path):
 
     charge_soup(_bs)
     changed_html = _bs.prettify('utf-8')
+    get_resourse(url, html_page_path)
     return changed_html, page_path, html_page_path
