@@ -24,7 +24,8 @@ def download(url, dir_path=os.getcwd()):
     except requests.exceptions.ConnectionError:
         raise requests.exceptions.ConnectionError('Can not connect to server!')
     html_content = r.text
-    ch_html, page_path = prepare_html(html_content, url, dir_path)
+    ch_html, page_path, html_page_path = prepare_html(html_content, url, dir_path)
+    save_html(html_page_path, ch_html)
     save_html(page_path, ch_html)
     logger.info('Done!')
     return page_path
