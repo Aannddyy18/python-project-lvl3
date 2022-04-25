@@ -1,12 +1,10 @@
 import os
 import pytest
 from os.path import dirname
-from unittest.mock import patch
 import tempfile
 import requests
 import requests_mock
-from page_loader.scripts.pageloader import download
-
+from page_loader.__main__ import download
 
 FIXTURES_FOLDER = 'fixtures'
 
@@ -21,104 +19,71 @@ def get_content_b(path_to_file):
         return f.read()
 
 
-expected_result = get_content(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'expected_page.html'))
 source_page = get_content(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'source_page.html'))
 expected_image = get_content_b(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'hexlet.png'))
-changed_page = get_content(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'changed_page.html'))
+changed_page = get_content_b(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'changed_page.html'))
 expected_css = get_content_b(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'application.css'))
 expected_js = get_content_b(os.path.join(dirname(__file__), FIXTURES_FOLDER, 'runtime.js'))
+image_path = os.path.join('ru-hexlet-io-courses_files',
+                          'ru-hexlet-io-assets-professions-nodejs.png')
+html_page_path = os.path.join('ru-hexlet-io-courses.html')
+css_path = os.path.join('ru-hexlet-io-courses_files',
+                        'ru-hexlet-io-assets-application.css')
+js_path = os.path.join('ru-hexlet-io-courses_files',
+                       'ru-hexlet-io-packs-js-runtime.js')
+
+test_requests_data = [
+    (image_path, expected_image), (css_path, expected_css),
+    (html_page_path, changed_page), (js_path, expected_js)
+]
+
+test_errors_data = [
+    ('http://twitter.com/api/1/foobar', requests.exceptions.ConnectionError, 'Can not connect to server!'),
+    ('http://instagram.com/api/1/foobar', requests.exceptions.HTTPError,
+     'A 4XX client error or 5XX server error response!')
+]
 
 
-def test_page_loader_path_to_file():
-    with tempfile.TemporaryDirectory() as tmp_dir:
+@pytest.fixture
+def create_tmp_dir():
+    return tempfile.TemporaryDirectory()
+
+
+def test_page_loader_path_to_file(create_tmp_dir):
+    with create_tmp_dir as tmp_dir:
         actual_path = download('https://ru.hexlet.io/courses', tmp_dir)
         expected_path = os.path.join(tmp_dir, "ru-hexlet-io-courses.html")
         assert actual_path == expected_path
 
 
-def test_page_loader_img():
-    with requests_mock.Mocker() as m:
-        m.get('https://ru.hexlet.io/courses', text=source_page)
-        m.get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
-        m.get('https://ru.hexlet.io/assets/application.css', content=expected_css)
-        m.get('https://ru.hexlet.io/packs/js/runtime.js', content=expected_js)
-        with tempfile.TemporaryDirectory() as tmp_dir:
+@pytest.mark.parametrize("path, expected", test_requests_data)
+@requests_mock.Mocker(kw='mock')
+def test_page_loader_img(path, expected, create_tmp_dir, **kwargs):
+    kwargs['mock'].get('https://ru.hexlet.io/courses', text=source_page)
+    kwargs['mock'].get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
+    kwargs['mock'].get('https://ru.hexlet.io/assets/application.css', content=expected_css)
+    kwargs['mock'].get('https://ru.hexlet.io/packs/js/runtime.js', content=expected_js)
+    with create_tmp_dir as tmp_dir:
+        download('https://ru.hexlet.io/courses', tmp_dir)
+        with open(
+                os.path.join(tmp_dir, path), 'rb') as d:
+            downloaded_content = d.read()
+            assert downloaded_content == expected
+
+
+def test_page_loader_os_error_exceptions(create_tmp_dir):
+    with pytest.raises(OSError) as e:
+        with create_tmp_dir as tmp_dir:
+            os.chmod(tmp_dir, 0o444)
             download('https://ru.hexlet.io/courses', tmp_dir)
-            with open(
-                    os.path.join(tmp_dir, 'ru-hexlet-io-courses_files',
-                                 'ru-hexlet-io-assets-professions-nodejs.png'
-                                 ), 'rb') as d:
-                downloaded_content = d.read()
-                assert downloaded_content == expected_image
+    assert str(e.value) == 'Can not save requested page!'
 
 
-def test_page_loader_change():
-    with requests_mock.Mocker() as m:
-        m.get('https://ru.hexlet.io/courses', text=source_page)
-        m.get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
-        m.get('https://ru.hexlet.io/assets/application.css', content=expected_css)
-        m.get('https://ru.hexlet.io/packs/js/runtime.js', content=expected_js)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            download('https://ru.hexlet.io/courses', tmp_dir)
-            with open(
-                    os.path.join(tmp_dir, 'ru-hexlet-io-courses.html'), 'r') as d:
-                downloaded_content = d.read()
-                assert downloaded_content == changed_page
-
-
-def test_page_loader_css():
-    with requests_mock.Mocker() as m:
-        m.get('https://ru.hexlet.io/courses', text=source_page)
-        m.get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
-        m.get('https://ru.hexlet.io/assets/application.css', content=expected_css)
-        m.get('https://ru.hexlet.io/packs/js/runtime.js', content=expected_js)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            download('https://ru.hexlet.io/courses', tmp_dir)
-            with open(
-                    os.path.join(tmp_dir, 'ru-hexlet-io-courses_files',
-                                 'ru-hexlet-io-assets-application.css'
-                                 ), 'rb') as d:
-                downloaded_content = d.read()
-                assert downloaded_content == expected_css
-
-
-def test_page_loader_js():
-    with requests_mock.Mocker() as m:
-        m.get('https://ru.hexlet.io/courses', text=source_page)
-        m.get('https://ru.hexlet.io/assets/professions/nodejs.png', content=expected_image)
-        m.get('https://ru.hexlet.io/assets/application.css', content=expected_css)
-        m.get('https://ru.hexlet.io/packs/js/runtime.js', content=expected_js)
-        with tempfile.TemporaryDirectory() as tmp_dir:
-            download('https://ru.hexlet.io/courses', tmp_dir)
-            with open(
-                    os.path.join(tmp_dir, 'ru-hexlet-io-courses_files',
-                                 'ru-hexlet-io-packs-js-runtime.js'
-                                 ), 'rb') as d:
-                downloaded_content = d.read()
-                assert downloaded_content == expected_js
-
-
-def test_page_loader_os_error_exceptions():
-    with patch('page_loader.page_loader.save_html', side_effect=OSError('Can not save requested page!')):
-        with pytest.raises(OSError) as e:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                download('https://ru.hexlet.io/courses', tmp_dir)
-        assert str(e.value) == 'Can not save requested page!'
-
-
-def test_page_loader_request_timeout_errors():
-    with requests_mock.Mocker() as m:
-        m.get('http://twitter.com/api/1/foobar', exc=requests.exceptions.ConnectTimeout)
-        with pytest.raises(requests.exceptions.ConnectTimeout) as e:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                download('http://twitter.com/api/1/foobar', tmp_dir)
-                assert isinstance(e.type, requests.exceptions.ConnectTimeout)
-
-
-def test_page_loader_request_http_errors():
-    with requests_mock.Mocker() as m:
-        m.get('http://instagram.com/api/1/foobar', exc=requests.exceptions.HTTPError)
-        with pytest.raises(requests.exceptions.HTTPError) as e:
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                download('http://instagram.com/api/1/foobar', tmp_dir)
-                assert isinstance(e.type, requests.exceptions.HTTPError)
+@pytest.mark.parametrize("str_url, error, str_error", test_errors_data)
+@requests_mock.Mocker(kw='mock')
+def test_page_loader_connection_errors(str_url, error, str_error, create_tmp_dir, **kwargs):
+    kwargs['mock'].get(str_url, exc=error)
+    with pytest.raises(error) as e:
+        with create_tmp_dir as tmp_dir:
+            download(str_url, tmp_dir)
+            assert str(e.value) == str_error
