@@ -33,18 +33,15 @@ def main():
         sys.exit(1)
     except requests.exceptions.ConnectionError as e:
         error_text = type(e).__name__ + ": " + str(e)
-        logger.error(f"Failed to load from {e.request.url}, error happens: "
-                     + error_text)
+        logger.error(f"Failed to load from {e.request.url}, error happens: {error_text}")
         sys.exit(1)
     except OSError as e:
         error_text = type(e).__name__ + ": " + str(e)
-        logger.error(f"Failed to save file, error happens: "
-                     + error_text)
+        logger.error(f"Failed to save file, error happens: {error_text}")
         sys.exit(1)
     except BaseException as e:
         error_text = type(e).__name__ + ": " + str(e)
-        logger.error(f"Unexpected error happens: "
-                     + error_text)
+        logger.error(f"Unexpected error happens: {error_text}")
         sys.exit(1)
     print(path_to_file)
 
