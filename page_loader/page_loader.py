@@ -10,10 +10,11 @@ logger = logging.getLogger()
 
 
 def download(url, dir_path=os.getcwd()):
-    try:
-        os.path.exists(dir_path)
-    except OSError:
-        raise 
+    if os.path.exists(dir_path):
+        pass
+    else:
+        logger.error('Directory not exists!')
+        raise OSError
     logger.info('Start to download requested page.')
     try:
         r = requests.get(url)
