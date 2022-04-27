@@ -28,20 +28,20 @@ def main():
     try:
         path_to_file = download(args.page_url, args.output)
     except requests.exceptions.HTTPError as e:
-        logger.error(f"Failed to connect to server {e.request.url}, "
-                     f"code {e.response.status_code} was returned")
+        print(f"Failed to connect to server {e.request.url}, "
+              f"code {e.response.status_code} was returned")
         sys.exit(1)
     except requests.exceptions.ConnectionError as e:
         error_text = type(e).__name__ + ": " + str(e)
-        logger.error(f"Failed to load from {e.request.url}, error happens: {error_text}")
+        print(f"Failed to load from {e.request.url}, error happens: {error_text}")
         sys.exit(1)
     except OSError as e:
         error_text = type(e).__name__ + ": " + str(e)
-        logger.error(f"Failed to save file, error happens: {error_text}")
+        print(f"Failed to save file, error happens: {error_text}")
         sys.exit(1)
     except BaseException as e:
         error_text = type(e).__name__ + ": " + str(e)
-        logger.error(f"Unexpected error happens: {error_text}")
+        print(f"Unexpected error happens: {error_text}")
         sys.exit(1)
     print(path_to_file)
 
