@@ -34,3 +34,4 @@ def save_html(file_path, file_name):
             file.write(file_name)
     except OSError:
         raise OSError("Can not save requested page!")
+    
