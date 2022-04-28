@@ -26,3 +26,11 @@ def get_resourse(res_url, f_name):
         error_text = type(e).__name__ + ": " + str(e)
         logger.warning('Fail to download, error happens: ' + error_text)
         return False
+
+
+def save_html(file_path, file_name):
+    try:
+        with open(file_path, 'wb') as file:
+            file.write(file_name)
+    except OSError:
+        raise OSError("Can not save requested page!")

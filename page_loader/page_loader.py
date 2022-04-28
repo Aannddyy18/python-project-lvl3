@@ -2,7 +2,7 @@ import os
 import requests
 import logging.config
 from page_loader.preparing_html import prepare_html
-from page_loader.saving_html import save_html
+from page_loader.getting_resourse import save_html
 
 logging_conf_path = os.path.join(os.path.dirname(__file__), 'logging.conf')
 logging.config.fileConfig(logging_conf_path)

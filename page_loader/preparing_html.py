@@ -1,10 +1,10 @@
 import os
 from urllib.parse import urlparse
 from bs4 import BeautifulSoup as B_s
-from page_loader.normalizing_string import normalize_string
 from page_loader.getting_resourse import get_resourse
 from page_loader.getting_base_url import get_base_url
 from page_loader.charging_soup import charge_soup
+from page_loader.charging_soup import normalize_string
 
 
 def prepare_html(html: str, url: str, dir_path):
@@ -25,3 +25,4 @@ def prepare_html(html: str, url: str, dir_path):
     changed_html = _bs.prettify('utf-8')
     get_resourse(url, html_page_path)
     return changed_html, page_path, html_page_path
+

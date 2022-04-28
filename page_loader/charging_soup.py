@@ -1,6 +1,6 @@
 import os
+import re
 from urllib.parse import urljoin
-from page_loader.normalizing_string import normalize_string
 from page_loader.getting_resourse import get_resourse
 from page_loader.getting_base_url import get_base_url
 from page_loader.getting_base_url import get_base_url_path
@@ -36,3 +36,8 @@ def filter_tag_attr(img, attrib, base_url):
     if base_url_ == base_url \
             or base_url_ == '://':
         return True
+
+
+def normalize_string(string):
+    string_name = re.sub('[^a-z0-9]', '-', string)
+    return string_name
