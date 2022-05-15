@@ -8,7 +8,7 @@ logging.config.fileConfig(logging_conf_path)
 logger = logging.getLogger()
 
 
-def get_resourse(res_url, f_name):
+def get_resource(res_url, f_name):
     logger.info('Getting resourses for that page..')
     try:
         r = requests.get(res_url, stream=True)
@@ -28,9 +28,14 @@ def get_resourse(res_url, f_name):
         return False
 
 
-def save_html(file_path, file_name):
+def get_html_content(url):
+    logger.info('Start to download requested page.')
     try:
-        with open(file_path, 'wb') as file:
-            file.write(file_name)
-    except OSError:
-        raise OSError("Can not save requested page!")
+        r = requests.get(url)
+        r.raise_for_status()
+    except requests.exceptions.HTTPError:
+        raise requests.exceptions.HTTPError('A 4XX client error or 5XX server error response!')
+    except requests.exceptions.ConnectionError:
+        raise requests.exceptions.ConnectionError('Can not connect to server!')
+    html_content = r.text
+    return html_content
