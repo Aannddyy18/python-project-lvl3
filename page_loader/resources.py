@@ -1,31 +1,50 @@
 import os
+from progress.bar import IncrementalBar
 import requests
 import logging.config
-from progress.bar import IncrementalBar
+from page_loader.html import define_attr
+from page_loader.storage import save_resource
+
 
 logging_conf_path = os.path.join(os.path.dirname(__file__), 'logging.conf')
 logging.config.fileConfig(logging_conf_path)
 logger = logging.getLogger()
 
 
-def get_resource(res_url, f_name):
+def get_resource(res_url, page_folder_name, f_name):
     logger.info('Getting resourses for that page..')
     try:
         r = requests.get(res_url, stream=True)
         r.raise_for_status()
-        output_dir = os.path.dirname(f_name)
-        os.makedirs(output_dir, exist_ok=True)
-        with open(f_name, "wb") as s:
-            for line in IncrementalBar('Downloading').iter(r.iter_content()):
-                if line:
-                    s.write(line)
-                    s.flush()
+        save_resource(page_folder_name, r.content)
         return True
-    except (requests.exceptions.HTTPError,
-            requests.exceptions.ConnectionError, OSError) as e:
+    except requests.exceptions.RequestException as e:
         error_text = type(e).__name__ + ": " + str(e)
         logger.warning('Fail to download, error happens: ' + error_text)
         return False
+    except OSError:
+        raise
+
+
+def try_to_get_resource(links_dict, page_folder_name):
+    if not links_dict:
+        return
+    if not os.path.exists(page_folder_name):
+        logger.info('Create directory for assets: %s', page_folder_name)
+        os.makedirs(page_folder_name, exist_ok=True)
+
+    bar_width = len(links_dict)
+
+    with IncrementalBar("Downloading:", max=bar_width) as bar:
+        bar.suffix = "%(percent).1f%% (eta: %(eta)s)"
+
+        for tag, v in links_dict.items():
+            attrib = define_attr(tag)
+            if get_resource(v[0], v[1], v[2]):
+                tag[attrib] = v[2]
+            bar.next()
+
+    return links_dict
 
 
 def get_html_content(url):

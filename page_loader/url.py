@@ -3,7 +3,7 @@ import re
 from urllib.parse import urlparse
 
 
-def form_names(url):
+def form_folder_name(url):
     o = urlparse(url)
     base_url, net_loc = get_base_url(url)
     split_path = os.path.splitext(o.path)
@@ -12,8 +12,19 @@ def form_names(url):
     else:
         page_name = normalize_string(net_loc + split_path[0])
     page_folder_name = page_name + '_files'
+    return page_folder_name
+
+
+def form_page_name(url):
+    o = urlparse(url)
+    base_url, net_loc = get_base_url(url)
+    split_path = os.path.splitext(o.path)
+    if split_path[1] == '' and split_path[0] == '':
+        page_name = normalize_string(net_loc)
+    else:
+        page_name = normalize_string(net_loc + split_path[0])
     page_name += '.html'
-    return page_folder_name, page_name
+    return page_name
 
 
 def get_base_url(page_url):
