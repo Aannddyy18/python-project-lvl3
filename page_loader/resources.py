@@ -18,7 +18,7 @@ def get_resource(res_url, page_folder_name):
         r.raise_for_status()
         save_resource(page_folder_name, r.content)
         return True
-    except requests.exceptions.RequestException as e:
+    except (requests.exceptions.RequestException, OSError) as e:
         error_text = type(e).__name__ + ": " + str(e)
         logger.warning('Fail to download, error happens: ' + error_text)
         return False
@@ -31,7 +31,7 @@ def try_to_get_resource(links_dict, page_folder_name):
         return
     if not os.path.exists(page_folder_name):
         try:
-            logger.info('Create directory for assets: %s', page_folder_name)
+            logger.info('Create directory for resources: %s', page_folder_name)
             os.makedirs(page_folder_name, exist_ok=True)
         except OSError:
             raise OSError('Can not save requested page!')
