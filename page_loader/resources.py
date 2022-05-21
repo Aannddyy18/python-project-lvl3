@@ -11,7 +11,7 @@ logging.config.fileConfig(logging_conf_path)
 logger = logging.getLogger()
 
 
-def get_resource(res_url, page_folder_name, f_name):
+def get_resource(res_url, page_folder_name):
     logger.info('Getting resourses for that page..')
     try:
         r = requests.get(res_url, stream=True)
@@ -30,8 +30,11 @@ def try_to_get_resource(links_dict, page_folder_name):
     if not links_dict:
         return
     if not os.path.exists(page_folder_name):
-        logger.info('Create directory for assets: %s', page_folder_name)
-        os.makedirs(page_folder_name, exist_ok=True)
+        try:
+            logger.info('Create directory for assets: %s', page_folder_name)
+            os.makedirs(page_folder_name, exist_ok=True)
+        except OSError:
+            raise OSError('Can not save requested page!')
 
     bar_width = len(links_dict)
 
@@ -40,7 +43,7 @@ def try_to_get_resource(links_dict, page_folder_name):
 
         for tag, v in links_dict.items():
             attrib = define_attr(tag)
-            if get_resource(v[0], v[1], v[2]):
+            if get_resource(v[0], v[1]):
                 tag[attrib] = v[2]
             bar.next()
 
@@ -52,9 +55,9 @@ def get_html_content(url):
     try:
         r = requests.get(url)
         r.raise_for_status()
+        html_content = r.text
     except requests.exceptions.HTTPError:
         raise requests.exceptions.HTTPError('A 4XX client error or 5XX server error response!')
     except requests.exceptions.ConnectionError:
         raise requests.exceptions.ConnectionError('Can not connect to server!')
-    html_content = r.text
     return html_content
