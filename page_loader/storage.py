@@ -8,4 +8,4 @@ def save_resource(file_path, file_name):
         with open(file_path, 'wb') as file:
             file.write(file_name)
     except OSError:
-        raise
+        raise OSError('Can not save requested page!')

@@ -12,7 +12,7 @@ logger = logging.getLogger()
 
 
 def get_resource(res_url, page_folder_name):
-    logger.info('Getting resourses for that page..')
+    logger.info('Getting resources for that page..')
     try:
         r = requests.get(res_url, stream=True)
         r.raise_for_status()
@@ -37,6 +37,7 @@ def try_to_get_resource(links_dict, page_folder_name):
             raise OSError('Can not save requested page!')
 
     bar_width = len(links_dict)
+    success_res_dict = {}
 
     with IncrementalBar("Downloading:", max=bar_width) as bar:
         bar.suffix = "%(percent).1f%% (eta: %(eta)s)"
@@ -44,10 +45,17 @@ def try_to_get_resource(links_dict, page_folder_name):
         for tag, v in links_dict.items():
             attrib = define_attr(tag)
             if get_resource(v[0], v[1]):
-                tag[attrib] = v[2]
+                success_res_dict[tag[attrib]] = v[2]
             bar.next()
 
-    return links_dict
+    return success_res_dict
+
+
+def change_attributes(links_dict, success_res_dict):
+    for tag in links_dict.keys():
+        attrib = define_attr(tag)
+        if tag[attrib] in success_res_dict:
+            tag[attrib] = success_res_dict[tag[attrib]]
 
 
 def get_html_content(url):

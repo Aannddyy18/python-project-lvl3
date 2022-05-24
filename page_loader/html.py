@@ -1,29 +1,14 @@
 import os
 import logging.config
 from urllib.parse import urljoin
-from page_loader.url import form_page_name
-from page_loader.url import form_folder_name
 from page_loader.url import normalize_string
 from page_loader.url import get_base_url
 from page_loader.url import get_base_url_path
-from bs4 import BeautifulSoup
 
 
 logging_conf_path = os.path.join(os.path.dirname(__file__), 'logging.conf')
 logging.config.fileConfig(logging_conf_path)
 logger = logging.getLogger()
-
-
-def parse_html(html: str, url: str, dir_path):
-    page_folder_name = form_folder_name(url)
-    page_name = form_page_name(url)
-    base_url, net_loc = get_base_url(url)
-    page_path = os.path.join(dir_path, page_name)
-    page_folder = os.path.join(dir_path, page_folder_name)
-    html_page_path = os.path.join(page_folder_name, page_name)
-    _bs = BeautifulSoup(html, "html.parser")
-    links_dict = find_resource(_bs, base_url, net_loc, page_folder, page_folder_name)
-    return _bs, links_dict, page_path, html_page_path, page_folder
 
 
 def filter_tag_attr(img, attrib, base_url):
